@@ -5,6 +5,15 @@
  */
 class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrader_Base {
 
+  public function postInstall() {
+    $configurationSteps = [
+      new CRM_Automateddirectdebit_Setup_Configure_SetPaymentCollectionRetryCountDefaultValue(),
+    ];
+    foreach ($configurationSteps as $step) {
+      $step->apply();
+    }
+  }
+
   public function enable() {
     $steps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
