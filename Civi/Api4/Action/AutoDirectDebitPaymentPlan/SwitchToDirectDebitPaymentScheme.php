@@ -58,7 +58,7 @@ class SwitchToDirectDebitPaymentScheme extends \Civi\Api4\Generic\AbstractAction
    * @inheritDoc
    */
   public function _run(Result $result) {
-    $paymentScheme = \Civi\Api4\PaymentScheme::get()
+    $paymentScheme = \Civi\Api4\PaymentScheme::get(FALSE)
       ->addSelect('payment_processor')
       ->addWhere('id', '=', $this->paymentSchemeID)
       ->setLimit(1)
@@ -68,7 +68,7 @@ class SwitchToDirectDebitPaymentScheme extends \Civi\Api4\Generic\AbstractAction
     }
     $newPaymentProcessorId = $paymentScheme[0]['payment_processor'];
 
-    return \Civi\Api4\ContributionRecur::update()
+    return \Civi\Api4\ContributionRecur::update(FALSE)
       ->addValue('payment_processor_id', $newPaymentProcessorId)
       ->addValue('installments', NULL)
       ->addValue('frequency_unit', NULL)
