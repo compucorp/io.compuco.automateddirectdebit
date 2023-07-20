@@ -6,6 +6,13 @@
 class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrader_Base {
 
   public function postInstall() {
+    $creationSteps = [
+      new CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob(),
+    ];
+    foreach ($creationSteps as $step) {
+      $step->create();
+    }
+
     $configurationSteps = [
       new CRM_Automateddirectdebit_Setup_Configure_SetPaymentCollectionRetryCountDefaultValue(),
     ];
@@ -18,6 +25,7 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrade
     $steps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInformation(),
+      new CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob(),
     ];
     foreach ($steps as $step) {
       $step->activate();
@@ -28,6 +36,7 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrade
     $steps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInformation(),
+      new CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob(),
     ];
     foreach ($steps as $step) {
       $step->deactivate();
@@ -38,6 +47,7 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrade
     $removalSteps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInformation(),
+      new CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob(),
     ];
     foreach ($removalSteps as $step) {
       $step->remove();
