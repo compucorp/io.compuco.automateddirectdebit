@@ -17,6 +17,7 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrade
   public function enable() {
     $steps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
+      new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInformation(),
     ];
     foreach ($steps as $step) {
       $step->activate();
@@ -26,6 +27,7 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrade
   public function disable() {
     $steps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
+      new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInformation(),
     ];
     foreach ($steps as $step) {
       $step->deactivate();
@@ -35,6 +37,7 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrade
   public function uninstall() {
     $removalSteps = [
       new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInformation(),
+      new CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInformation(),
     ];
     foreach ($removalSteps as $step) {
       $step->remove();
