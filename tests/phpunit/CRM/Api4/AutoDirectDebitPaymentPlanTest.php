@@ -28,6 +28,7 @@ class CRM_Api4_AutoDirectDebitPaymentPlanTest extends BaseHeadlessTest {
       ->addValue('permission', 'public')
       ->addValue('parameters', '{}')
       ->addValue('payment_processor', 1)
+      ->addValue('public_description', 'test')
       ->execute()[0];
 
     \Civi\Api4\AutoDirectDebitPaymentPlan::switchToDirectDebitPaymentScheme()
