@@ -1,1 +1,1 @@
-# "Automated Direct Debit" CiviCRM Extension
+# "Automated Direct Debit" CiviCRM Extension test
