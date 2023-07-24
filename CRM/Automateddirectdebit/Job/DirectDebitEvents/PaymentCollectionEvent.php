@@ -22,8 +22,8 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
 
       $pendingInvoiceData['charge_amount'] = $pendingInvoiceData['total_amount'] - $invoiceTotalPaidAmount;
 
-      $this->markContributionExternalPaymentToBeInProgress($pendingInvoices['contribution_id']);
-      $this->dispatchPaymentCollectionEventHook($pendingInvoices);
+      $this->markContributionExternalPaymentToBeInProgress($pendingInvoiceData['contribution_id']);
+      $this->dispatchPaymentCollectionEventHook($pendingInvoiceData);
     }
   }
 
@@ -43,14 +43,14 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->join('cr', 'INNER JOIN civicrm_contribution_recur cr ON c.contribution_recur_id = cr.id')
       ->join('mandate', 'INNER JOIN civicrm_value_external_dd_mandate_information mandate ON cr.id = mandate.entity_id')
       ->join('ppea', 'INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id')
-      ->join('epi', 'INNER JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id')
+      ->join('epi', 'LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id')
       ->where("mandate.mandate_id IS NOT NULL")
       ->where("mandate.mandate_status = {$mandateActiveStatusId}")
       ->where('ppea.is_active = 1')
       ->where("cr.contribution_status_id IN ({$recurContributionStatusesToProcess})")
       ->where('mandate.next_available_payment_date IS NOT NULL')
       ->where('c.receive_date >= mandate.next_available_payment_date')
-      ->where("c.receive_date <= {$todaysDate}")
+      ->where("c.receive_date <= '{$todaysDate}'")
       ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
       ->where("cr.failure_count <= {$failureRetryCount}")
       ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.id as mandate_id');

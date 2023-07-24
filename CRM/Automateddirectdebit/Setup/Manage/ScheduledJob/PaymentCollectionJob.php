@@ -24,7 +24,7 @@ class CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob ex
       'run_frequency' => 'Daily',
       'name' => self::JOB_NAME,
       'description' => ts('This job allows for collecting payments using external direct debit payment processors (such as GoCardless).'),
-      'api_entity' => 'ExternalDDPaymentCollectionJob',
+      'api_entity' => 'ExternalDirectDebitPaymentCollectionJob',
       'api_action' => 'run',
       'is_active' => 0,
     ]);

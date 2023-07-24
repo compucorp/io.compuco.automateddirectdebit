@@ -1,6 +1,6 @@
 <?php
 
-function civicrm_api3_external_dd_payment_collection_job_run($params, $paymentCollectionEventJob) {
+function civicrm_api3_external_direct_debit_payment_collection_job_run($params) {
   $lock = Civi::lockManager()->acquire('worker.automateddirectdebit.externalddpaymentcollection');
   if (!$lock->isAcquired()) {
     return civicrm_api3_create_error("Could not acquire a lock, another 'External Payment Collection' job is running");
