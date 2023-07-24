@@ -5,8 +5,7 @@ use CRM_MembershipExtras_Setup_Manage_AbstractManager as AbstractManager;
 /**
  * Managing the 'Payment Collection' scheduled job.
  */
-class CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob extends AbstractManager
-{
+class CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob extends AbstractManager {
 
   const JOB_NAME = 'External Direct Debit Payment Collection';
 
@@ -34,8 +33,7 @@ class CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob ex
   /**
    * @inheritDoc
    */
-  public function remove()
-  {
+  public function remove() {
     civicrm_api3('Job', 'get', [
       'name' => self::JOB_NAME,
       'api.Job.delete' => ['id' => '$value.id'],
@@ -45,8 +43,7 @@ class CRM_Automateddirectdebit_Setup_Manage_ScheduledJob_PaymentCollectionJob ex
   /**
    * @inheritDoc
    */
-  protected function toggle($status)
-  {
+  protected function toggle($status) {
     civicrm_api3('Job', 'get', [
       'name' => self::JOB_NAME,
       'api.Job.create' => ['id' => '$value.id', 'is_active' => $status],
