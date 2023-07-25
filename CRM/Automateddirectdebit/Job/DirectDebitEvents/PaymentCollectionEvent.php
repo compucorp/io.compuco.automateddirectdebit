@@ -34,10 +34,14 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingInvoicesQuery() {
+    $mandateActiveStatusId = civicrm_api3('OptionValue', 'getvalue', [
+      'option_group_id' => 'automateddirectdebit_mandate_status',
+      'name' => 'active',
+      'return' => 'value',
+    ]);
+
     $recurContributionStatusesToProcess = implode(',', $this->getRecurContributionStatusesIdsToProcess());
-    $mandateActiveStatusId = 1;
     $failureRetryCount = \Civi::settings()->get('automateddirectdebit_paymentplan_payment_collection_retry_count');
-    $todaysDate = date('Y-m-d 00:00:00');
 
     $query = CRM_Utils_SQL_Select::from('civicrm_contribution c')
       ->join('cr', 'INNER JOIN civicrm_contribution_recur cr ON c.contribution_recur_id = cr.id')
@@ -50,7 +54,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->where("cr.contribution_status_id IN ({$recurContributionStatusesToProcess})")
       ->where('mandate.next_available_payment_date IS NOT NULL')
       ->where('c.receive_date >= mandate.next_available_payment_date')
-      ->where("c.receive_date <= '{$todaysDate}'")
+      ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
       ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
       ->where("cr.failure_count <= {$failureRetryCount}")
       ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.id as mandate_id');
