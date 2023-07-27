@@ -57,7 +57,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
       ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
       ->where("cr.failure_count <= {$failureRetryCount}")
-      ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.id as mandate_id');
+      ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id');
 
     return $query;
   }
