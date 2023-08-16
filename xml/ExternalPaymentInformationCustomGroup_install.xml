@@ -117,5 +117,16 @@
       <is_active>1</is_active>
       <option_group_name>automateddirectdebit_external_payment_status</option_group_name>
     </OptionValue>
+    <OptionValue>
+      <name>confirmed</name>
+      <label>Confirmed</label>
+      <value>6</value>
+      <is_default>0</is_default>
+      <weight>6</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>automateddirectdebit_external_payment_status</option_group_name>
+    </OptionValue>
   </OptionValues>
 </CustomData>
