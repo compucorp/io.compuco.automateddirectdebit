@@ -70,7 +70,6 @@ class SwitchToDirectDebitPaymentScheme extends \Civi\Api4\Generic\AbstractAction
 
     return \Civi\Api4\ContributionRecur::update(FALSE)
       ->addValue('payment_processor_id', $newPaymentProcessorId)
-      ->addValue('installments', NULL)
       ->addValue('frequency_unit', NULL)
       ->addValue('frequency_interval', NULL)
       ->addValue('payment_plan_extra_attributes.payment_scheme_id', $this->paymentSchemeID)
