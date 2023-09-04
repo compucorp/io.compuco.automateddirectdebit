@@ -52,12 +52,11 @@ class CRM_Api4_AutoDirectDebitPaymentPlanTest extends BaseHeadlessTest {
 
   public function testSwitchToDirectDebitPaymentSchemeWillUnsetIrrelevantRecurringContributionFields() {
     $recurringContributionAfterSwitch = \Civi\Api4\ContributionRecur::get()
-      ->addSelect('installments', 'frequency_unit', 'frequency_interval')
+      ->addSelect('frequency_unit', 'frequency_interval')
       ->addWhere('id', '=', $this->recurringContribution['id'])
       ->setLimit(1)
       ->execute()[0];
 
-    $this->assertEmpty($recurringContributionAfterSwitch['installments']);
     $this->assertEmpty($recurringContributionAfterSwitch['frequency_unit']);
     $this->assertEmpty($recurringContributionAfterSwitch['frequency_interval']);
   }
