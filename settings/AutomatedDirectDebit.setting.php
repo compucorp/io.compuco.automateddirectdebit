@@ -10,9 +10,12 @@ return [
     'name' => 'automateddirectdebit_paymentplan_payment_collection_retry_count',
     'title' => 'Payment collection number of retry attempts',
     'type' => 'Integer',
-    'html_type' => 'text',
+    'html_type' => 'number',
     'quick_form_type' => 'Element',
     'default' => 3,
     'is_required' => TRUE,
+    'attributes' => [
+      'min' => 0,
+    ],
   ],
 ];
