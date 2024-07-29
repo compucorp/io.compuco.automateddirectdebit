@@ -3,7 +3,7 @@
 /**
  * Collection of upgrade steps.
  */
-class CRM_Automateddirectdebit_Upgrader extends CRM_Automateddirectdebit_Upgrader_Base {
+class CRM_Automateddirectdebit_Upgrader extends CRM_Extension_Upgrader_Base {
 
   public function postInstall() {
     $creationSteps = [
