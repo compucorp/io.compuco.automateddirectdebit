@@ -23,10 +23,11 @@
   </comments>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>
+    <psr0 prefix="CRM_" path="."/>
   </classloader>
   <civix>
     <namespace>CRM/Automateddirectdebit</namespace>
-    <format>22.05.2</format>
+    <format>23.02.1</format>
     <angularModule>crmAutomateddirectdebit</angularModule>
   </civix>
   <requires>
@@ -36,4 +37,5 @@
     <mixin>mgd-php@1.0.0</mixin>
     <mixin>setting-php@1.0.0</mixin>
   </mixins>
+  <upgrader>CRM_Automateddirectdebit_Upgrader</upgrader>
 </extension>
