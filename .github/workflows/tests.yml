@@ -46,7 +46,7 @@ jobs:
       - name: Installing Automated Direct Debit extension and its dependencies
         working-directory: ${{ env.CIVICRM_EXTENSIONS_DIR }}
         run: |
-          git clone -b CIWEMB-84-workstream --depth 1 https://github.com/compucorp/uk.co.compucorp.membershipextras.git
+          git clone -b master --depth 1 https://github.com/compucorp/uk.co.compucorp.membershipextras.git
           cv en uk.co.compucorp.membershipextras io.compuco.automateddirectdebit
 
       - name: Run phpunit tests
