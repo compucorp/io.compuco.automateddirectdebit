@@ -10,7 +10,7 @@ class CRM_Api4_AutoDirectDebitPaymentPlanTest extends BaseHeadlessTest {
 
   private $paymentScheme;
 
-  public function setUp() {
+  public function setUp(): void {
     $this->recurringContribution = \Civi\Api4\ContributionRecur::create()
       ->addValue('contact_id', 1)
       ->addValue('amount', 100)
@@ -35,6 +35,7 @@ class CRM_Api4_AutoDirectDebitPaymentPlanTest extends BaseHeadlessTest {
       ->setContributionRecurId($this->recurringContribution['id'])
       ->setPaymentSchemeID($this->paymentScheme['id'])
       ->setMandateId('MAND_00001')
+      ->setMandateScheme('bacs')
       ->setMandateStatus(1)
       ->setNextAvailablePaymentDate('2023-01-01')
       ->execute();
@@ -75,11 +76,13 @@ class CRM_Api4_AutoDirectDebitPaymentPlanTest extends BaseHeadlessTest {
     $recurringContributionAfterSwitch = \Civi\Api4\ContributionRecur::get()
       ->addSelect('external_direct_debit_mandate_information.mandate_id')
       ->addSelect('external_direct_debit_mandate_information.mandate_status')
+      ->addSelect('external_direct_debit_mandate_information.mandate_scheme')
       ->addSelect('external_direct_debit_mandate_information.next_available_payment_date')
       ->addWhere('id', '=', $this->recurringContribution['id'])
       ->setLimit(1)
       ->execute()[0];
 
+    $this->assertEquals('bacs', $recurringContributionAfterSwitch['external_direct_debit_mandate_information.mandate_scheme']);
     $this->assertEquals('MAND_00001', $recurringContributionAfterSwitch['external_direct_debit_mandate_information.mandate_id']);
     $this->assertEquals(1, $recurringContributionAfterSwitch['external_direct_debit_mandate_information.mandate_status']);
     $this->assertEquals('2023-01-01', $recurringContributionAfterSwitch['external_direct_debit_mandate_information.next_available_payment_date']);
