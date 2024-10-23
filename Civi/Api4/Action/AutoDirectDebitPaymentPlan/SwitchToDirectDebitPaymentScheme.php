@@ -52,6 +52,12 @@ class SwitchToDirectDebitPaymentScheme extends \Civi\Api4\Generic\AbstractAction
    * @var string
    * @required
    */
+  protected $mandateScheme;
+
+  /**
+   * @var string
+   * @required
+   */
   protected $nextAvailablePaymentDate;
 
   /**
@@ -75,6 +81,7 @@ class SwitchToDirectDebitPaymentScheme extends \Civi\Api4\Generic\AbstractAction
       ->addValue('payment_plan_extra_attributes.payment_scheme_id', $this->paymentSchemeID)
       ->addValue('external_direct_debit_mandate_information.mandate_id', $this->mandateId)
       ->addValue('external_direct_debit_mandate_information.mandate_status', $this->mandateStatus)
+      ->addValue('external_direct_debit_mandate_information.mandate_scheme', strtolower($this->mandateScheme))
       ->addValue('external_direct_debit_mandate_information.next_available_payment_date', $this->nextAvailablePaymentDate)
       ->addWhere('id', '=', $this->contributionRecurId)
       ->execute();
