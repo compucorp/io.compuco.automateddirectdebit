@@ -23,6 +23,7 @@ class CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDMandateInforma
   public function remove() {
     $customFields = [
       'mandate_id',
+      'mandate_scheme',
       'mandate_status',
       'next_available_payment_date',
     ];

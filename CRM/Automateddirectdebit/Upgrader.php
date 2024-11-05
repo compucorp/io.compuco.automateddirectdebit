@@ -54,4 +54,12 @@ class CRM_Automateddirectdebit_Upgrader extends CRM_Extension_Upgrader_Base {
     }
   }
 
+  public function upgrade_1000() {
+    $this->ctx->log->info('Applying update 1000');
+
+    (new CRM_Automateddirectdebit_Setup_Configure_AddMandateSchemetoDDMandateInformation())->apply();
+
+    return TRUE;
+  }
+
 }
