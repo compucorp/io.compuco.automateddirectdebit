@@ -54,7 +54,6 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->where('mandate.mandate_scheme = @scheme', ["scheme" => self::BASC_PAYMENT_SCHEME])
       ->where('ppea.is_active = 1')
       ->where("cr.contribution_status_id IN ({$recurContributionStatusesToProcess})")
-      ->where('mandate.next_available_payment_date IS NOT NULL')
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
       ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
       ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id');
@@ -81,7 +80,6 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->where('mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme', ["scheme" => self::BASC_PAYMENT_SCHEME])
       ->where('ppea.is_active = 1')
       ->where("cr.contribution_status_id IN ({$recurContributionStatusesToProcess})")
-      ->where('mandate.next_available_payment_date IS NOT NULL')
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
       ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
       ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id');
