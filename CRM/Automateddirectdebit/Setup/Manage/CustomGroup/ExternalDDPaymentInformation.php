@@ -24,6 +24,7 @@ class CRM_Automateddirectdebit_Setup_Manage_CustomGroup_ExternalDDPaymentInforma
     $customFields = [
       'last_payment_status',
       'payment_in_progress',
+      'payment_in_progress_at',
     ];
     foreach ($customFields as $customFieldName) {
       civicrm_api3('CustomField', 'get', [
