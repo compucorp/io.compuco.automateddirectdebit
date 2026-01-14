@@ -11,6 +11,13 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
 
   const BASC_PAYMENT_SCHEME = "bacs";
 
+  /**
+   * Cache for status IDs to avoid repeated DB queries.
+   *
+   * @var array
+   */
+  private static $statusIdCache = [];
+
   public function run() {
     $pendingBACSInvoicesQuery = $this->buildPendingBACSInvoicesQuery();
     $this->createPaymentForInvoices($pendingBACSInvoicesQuery);
@@ -43,20 +50,22 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingBACSInvoicesQuery() {
-    $recurContributionStatusesToProcess = implode(',', $this->getRecurContributionStatusesId(['In Progress', 'Overdue']));
+    $recurContributionStatusIds = $this->getStatusesId('contribution_recur_status', ['In Progress', 'Overdue']);
+    $contributionStatusIds = $this->getStatusesId('contribution_status', ['Pending', 'Partially paid']);
 
-    $query = CRM_Utils_SQL_Select::from('civicrm_contribution c')
-      ->join('cr', 'INNER JOIN civicrm_contribution_recur cr ON c.contribution_recur_id = cr.id')
-      ->join('mandate', 'INNER JOIN civicrm_value_external_dd_mandate_information mandate ON cr.id = mandate.entity_id')
-      ->join('ppea', 'INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id')
-      ->join('epi', 'LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id')
+    $query = CRM_Utils_SQL_Select::from("civicrm_contribution c")
+      ->join("cr", "INNER JOIN civicrm_contribution_recur cr ON c.contribution_recur_id = cr.id")
+      ->join("mandate", "INNER JOIN civicrm_value_external_dd_mandate_information mandate ON cr.id = mandate.entity_id")
+      ->join("ppea", "INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id")
+      ->join("epi", "LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id")
       ->where("mandate.mandate_id IS NOT NULL")
-      ->where('mandate.mandate_scheme = @scheme', ["scheme" => self::BASC_PAYMENT_SCHEME])
-      ->where('ppea.is_active = 1')
-      ->where("cr.contribution_status_id IN ({$recurContributionStatusesToProcess})")
+      ->where("mandate.mandate_scheme = @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME])
+      ->where("ppea.is_active = 1")
+      ->where("cr.contribution_status_id IN (@recur_statuses)", ["recur_statuses" => $recurContributionStatusIds])
+      ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
-      ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
-      ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id');
+      ->where("epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL")
+      ->select("c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id");
 
     return $query;
   }
@@ -69,32 +78,50 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingOtherInvoicesQuery() {
-    $recurContributionStatusesToProcess = implode(',', $this->getRecurContributionStatusesId(['In Progress', 'Overdue', 'Pending']));
+    $recurContributionStatusIds = $this->getStatusesId('contribution_recur_status', ['In Progress', 'Overdue', 'Pending']);
+    $contributionStatusIds = $this->getStatusesId('contribution_status', ['Pending', 'Partially paid']);
 
-    $query = CRM_Utils_SQL_Select::from('civicrm_contribution c')
-      ->join('cr', 'INNER JOIN civicrm_contribution_recur cr ON c.contribution_recur_id = cr.id')
-      ->join('mandate', 'INNER JOIN civicrm_value_external_dd_mandate_information mandate ON cr.id = mandate.entity_id')
-      ->join('ppea', 'INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id')
-      ->join('epi', 'LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id')
+    $query = CRM_Utils_SQL_Select::from("civicrm_contribution c")
+      ->join("cr", "INNER JOIN civicrm_contribution_recur cr ON c.contribution_recur_id = cr.id")
+      ->join("mandate", "INNER JOIN civicrm_value_external_dd_mandate_information mandate ON cr.id = mandate.entity_id")
+      ->join("ppea", "INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id")
+      ->join("epi", "LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id")
       ->where("mandate.mandate_id IS NOT NULL")
-      ->where('mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme', ["scheme" => self::BASC_PAYMENT_SCHEME])
-      ->where('ppea.is_active = 1')
-      ->where("cr.contribution_status_id IN ({$recurContributionStatusesToProcess})")
+      ->where("mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME])
+      ->where("ppea.is_active = 1")
+      ->where("cr.contribution_status_id IN (@recur_statuses)", ["recur_statuses" => $recurContributionStatusIds])
+      ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
-      ->where('epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL')
-      ->select('c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id');
+      ->where("epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL")
+      ->select("c.id as contribution_id, c.contact_id, c.receive_date, c.total_amount, c.currency, mandate.mandate_id");
 
     return $query;
   }
 
-  private function getRecurContributionStatusesId($statusesNamesToProcess) {
-    $allStatuses = CRM_Core_OptionGroup::values('contribution_recur_status', FALSE, FALSE, FALSE, NULL, 'name');
+  /**
+   * Gets status IDs for the given option group and status names.
+   * Results are cached to avoid repeated DB queries.
+   *
+   * @param string $optionGroupName The option group name
+   * @param array $statusesNamesToProcess The status names to get IDs for
+   * @return array The status IDs
+   */
+  private function getStatusesId($optionGroupName, $statusesNamesToProcess) {
+    $cacheKey = $optionGroupName . ":" . implode(",", $statusesNamesToProcess);
+
+    if (isset(self::$statusIdCache[$cacheKey])) {
+      return self::$statusIdCache[$cacheKey];
+    }
+
+    $allStatuses = CRM_Core_OptionGroup::values($optionGroupName, FALSE, FALSE, FALSE, NULL, "name");
     $statusesIdsToProcess = [];
     foreach ($allStatuses as $key => $val) {
-      if (array_search($val, $statusesNamesToProcess) !== FALSE) {
+      if (in_array($val, $statusesNamesToProcess)) {
         $statusesIdsToProcess[] = $key;
       }
     }
+
+    self::$statusIdCache[$cacheKey] = $statusesIdsToProcess;
 
     return $statusesIdsToProcess;
   }
