@@ -9,7 +9,7 @@
  */
 class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
 
-  const BASC_PAYMENT_SCHEME = "bacs";
+  const BACS_PAYMENT_SCHEME = "bacs";
 
   /**
    * Minutes after which a locked contribution becomes eligible for retry.
@@ -54,7 +54,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
 
   /**
    * Builds the query to fetch the contributions (invoices)
-   * with BACS payment shceme and that
+   * with BACS payment scheme and that
    * match the criteria of direct debit payment invoices
    *
    * @return CRM_Utils_SQL_Select
@@ -69,7 +69,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->join("ppea", "INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id")
       ->join("epi", "LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id")
       ->where("mandate.mandate_id IS NOT NULL")
-      ->where("mandate.mandate_scheme = @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME])
+      ->where("mandate.mandate_scheme = @scheme", ["scheme" => self::BACS_PAYMENT_SCHEME])
       ->where("ppea.is_active = 1")
       ->where("cr.contribution_status_id IN (@recur_statuses)", ["recur_statuses" => $recurContributionStatusIds])
       ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
@@ -86,7 +86,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
 
   /**
    * Builds the query to fetch the contributions (invoices)
-   * with NON-BACS payment shceme (e.g. SEPA, PAD) and that
+   * with NON-BACS payment scheme (e.g. SEPA, PAD) and that
    * match the criteria of direct debit payment invoices
    *
    * @return CRM_Utils_SQL_Select
@@ -101,7 +101,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->join("ppea", "INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id")
       ->join("epi", "LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id")
       ->where("mandate.mandate_id IS NOT NULL")
-      ->where("mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME])
+      ->where("mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme", ["scheme" => self::BACS_PAYMENT_SCHEME])
       ->where("ppea.is_active = 1")
       ->where("cr.contribution_status_id IN (@recur_statuses)", ["recur_statuses" => $recurContributionStatusIds])
       ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
