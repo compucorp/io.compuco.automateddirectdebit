@@ -230,6 +230,7 @@ class CRM_Automateddirectdebit_Job_PaymentCollectionEventTest extends BaseHeadle
       ->addValue('total_amount', 100)
       ->addValue('financial_type_id', 1)
       ->addValue('contribution_recur_id', $recurringContribution['id'])
+      ->addValue('contribution_status_id:name', 'Pending')
       ->addValue('receive_date', 'now')
       ->execute()
       ->first();
