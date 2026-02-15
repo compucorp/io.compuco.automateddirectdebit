@@ -1,0 +1,64 @@
+# Gemini Code Assist Configuration
+# Documentation: https://cloud.google.com/gemini/docs/code-assist
+
+code_review:
+  # Enable automatic PR reviews
+  enabled: true
+
+  # Review criteria
+  checks:
+    - security
+    - performance
+    - best_practices
+    - code_style
+    - testing
+
+  # Severity levels
+  severity_levels:
+    - BLOCKER    # Must fix before merge
+    - WARNING    # Should fix
+    - SUGGESTION # Optional improvement
+    - QUESTION   # Needs clarification
+
+  # Files to exclude from review
+  exclude_patterns:
+    - "*.civix.php"           # Generated files
+    - "vendor/**"             # Dependencies
+    - "tests/fixtures/**"     # Test fixtures
+
+  # Required checks before approval
+  required_checks:
+    - no_security_vulnerabilities
+    - tests_pass
+    - linting_passes
+
+# Code generation settings
+code_generation:
+  # Follow project conventions
+  conventions:
+    - PSR-12 with Drupal modifications
+    - CiviCRM API4 over API3
+    - PHPStan compatible annotations
+
+  # Reference documentation
+  reference_docs:
+    - .ai/shared-development-guide.md
+    - .ai/civicrm.md
+    - .ai/extension.md
+    - .ai/unit-testing-guide.md
+
+# Language-specific settings
+languages:
+  php:
+    version: "7.4"
+    standards:
+      - Drupal
+      - CiviCRM
+
+# Testing requirements
+testing:
+  framework: phpunit
+  command: phpunit5
+  required_for:
+    - new_features
+    - bug_fixes
