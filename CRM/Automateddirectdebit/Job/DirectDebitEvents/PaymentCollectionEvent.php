@@ -50,7 +50,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingBACSInvoicesQuery() {
-    $recurContributionStatusIds = $this->getStatusesId('contribution_recur_status', ['In Progress', 'Overdue']);
+    $excludedRecurStatusIds = $this->getStatusesId('contribution_recur_status', ['Cancelled', 'Failed']);
     $contributionStatusIds = $this->getStatusesId('contribution_status', ['Pending', 'Partially paid']);
 
     $query = CRM_Utils_SQL_Select::from("civicrm_contribution c")
@@ -61,7 +61,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->where("mandate.mandate_id IS NOT NULL")
       ->where("mandate.mandate_scheme = @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME])
       ->where("ppea.is_active = 1")
-      ->where("cr.contribution_status_id IN (@recur_statuses)", ["recur_statuses" => $recurContributionStatusIds])
+      ->where("cr.contribution_status_id NOT IN (@recur_statuses)", ["recur_statuses" => $excludedRecurStatusIds])
       ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
       ->where("epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL")
@@ -78,7 +78,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingOtherInvoicesQuery() {
-    $recurContributionStatusIds = $this->getStatusesId('contribution_recur_status', ['In Progress', 'Overdue', 'Pending']);
+    $excludedRecurStatusIds = $this->getStatusesId('contribution_recur_status', ['Cancelled', 'Failed']);
     $contributionStatusIds = $this->getStatusesId('contribution_status', ['Pending', 'Partially paid']);
 
     $query = CRM_Utils_SQL_Select::from("civicrm_contribution c")
@@ -89,7 +89,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->where("mandate.mandate_id IS NOT NULL")
       ->where("mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME])
       ->where("ppea.is_active = 1")
-      ->where("cr.contribution_status_id IN (@recur_statuses)", ["recur_statuses" => $recurContributionStatusIds])
+      ->where("cr.contribution_status_id NOT IN (@recur_statuses)", ["recur_statuses" => $excludedRecurStatusIds])
       ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
       ->where("c.receive_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)")
       ->where("epi.payment_in_progress = 0 OR epi.payment_in_progress IS NULL")
