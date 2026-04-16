@@ -48,7 +48,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingBACSInvoicesQuery() {
-    return $this->buildPendingInvoicesQuery("mandate.mandate_scheme = @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME]);
+    return $this->buildPendingInvoicesQuery(TRUE);
   }
 
   /**
@@ -57,17 +57,16 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
    * @return CRM_Utils_SQL_Select
    */
   public function buildPendingOtherInvoicesQuery() {
-    return $this->buildPendingInvoicesQuery("mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme", ["scheme" => self::BASC_PAYMENT_SCHEME]);
+    return $this->buildPendingInvoicesQuery(FALSE);
   }
 
   /**
    * Builds the query to fetch contributions (invoices) eligible for direct debit payment collection.
    *
-   * @param string $schemeCondition SQL WHERE clause for mandate scheme filtering
-   * @param array $schemeParams Parameters for the scheme condition
+   * @param bool $isBacs Whether to filter for BACS or non-BACS schemes
    * @return CRM_Utils_SQL_Select
    */
-  private function buildPendingInvoicesQuery(string $schemeCondition, array $schemeParams) {
+  private function buildPendingInvoicesQuery(bool $isBacs) {
     $excludedRecurStatusIds = $this->getStatusesId('contribution_recur_status', ['Cancelled', 'Failed']);
     $contributionStatusIds = $this->getStatusesId('contribution_status', ['Pending', 'Partially paid']);
 
@@ -77,7 +76,12 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEvent {
       ->join("ppea", "INNER JOIN civicrm_value_payment_plan_extra_attributes ppea ON cr.id = ppea.entity_id")
       ->join("epi", "LEFT JOIN civicrm_value_external_dd_payment_information epi ON c.id = epi.entity_id")
       ->where("mandate.mandate_id IS NOT NULL")
-      ->where($schemeCondition, $schemeParams)
+      ->where(
+        $isBacs
+          ? "mandate.mandate_scheme = @scheme"
+          : "mandate.mandate_scheme IS NULL OR mandate.mandate_scheme <> @scheme",
+        ["scheme" => self::BASC_PAYMENT_SCHEME]
+      )
       ->where("ppea.is_active = 1")
       ->where("cr.contribution_status_id NOT IN (@recur_statuses)", ["recur_statuses" => $excludedRecurStatusIds])
       ->where("c.contribution_status_id IN (@contrib_statuses)", ["contrib_statuses" => $contributionStatusIds])
