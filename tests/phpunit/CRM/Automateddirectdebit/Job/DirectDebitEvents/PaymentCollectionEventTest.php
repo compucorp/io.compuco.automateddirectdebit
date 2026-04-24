@@ -314,7 +314,7 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEventTest 
     );
   }
 
-  public function testPendingRecurringContributionIsNotIncludedInBACSQuery() {
+  public function testPendingRecurringContributionIsIncludedInBACSQuery() {
     $recurringContribution = $this->createRecurringContribution('Pending');
     $this->setupMandateInformation($recurringContribution['id'], 'TEST_MANDATE_PENDING_BACS', 'bacs');
     $this->setupPaymentPlanExtraAttributes($recurringContribution['id']);
@@ -323,9 +323,54 @@ class CRM_Automateddirectdebit_Job_DirectDebitEvents_PaymentCollectionEventTest 
 
     $contributionIds = $this->getBACSQueryContributionIds();
 
+    $this->assertTrue(
+      in_array($contribution['id'], $contributionIds),
+      'Contribution with Pending recurring status should be included in BACS query'
+    );
+  }
+
+  public function testCompletedRecurringContributionIsIncludedInBACSQuery() {
+    $recurringContribution = $this->createRecurringContribution('Completed');
+    $this->setupMandateInformation($recurringContribution['id'], 'TEST_MANDATE_COMPLETED_BACS', 'bacs');
+    $this->setupPaymentPlanExtraAttributes($recurringContribution['id']);
+
+    $contribution = $this->createContribution($recurringContribution['id'], 'Pending');
+
+    $contributionIds = $this->getBACSQueryContributionIds();
+
+    $this->assertTrue(
+      in_array($contribution['id'], $contributionIds),
+      'Contribution with Completed recurring status should be included in BACS query if it has pending contributions'
+    );
+  }
+
+  public function testCancelledRecurringContributionIsNotIncludedInBACSQuery() {
+    $recurringContribution = $this->createRecurringContribution('Cancelled');
+    $this->setupMandateInformation($recurringContribution['id'], 'TEST_MANDATE_CANCELLED_BACS', 'bacs');
+    $this->setupPaymentPlanExtraAttributes($recurringContribution['id']);
+
+    $contribution = $this->createContribution($recurringContribution['id'], 'Pending');
+
+    $contributionIds = $this->getBACSQueryContributionIds();
+
     $this->assertFalse(
       in_array($contribution['id'], $contributionIds),
-      'Contribution with Pending recurring status should NOT be included in BACS query'
+      'Contribution with Cancelled recurring status should NOT be included in BACS query'
+    );
+  }
+
+  public function testFailedRecurringContributionIsNotIncludedInBACSQuery() {
+    $recurringContribution = $this->createRecurringContribution('Failed');
+    $this->setupMandateInformation($recurringContribution['id'], 'TEST_MANDATE_FAILED_BACS', 'bacs');
+    $this->setupPaymentPlanExtraAttributes($recurringContribution['id']);
+
+    $contribution = $this->createContribution($recurringContribution['id'], 'Pending');
+
+    $contributionIds = $this->getBACSQueryContributionIds();
+
+    $this->assertFalse(
+      in_array($contribution['id'], $contributionIds),
+      'Contribution with Failed recurring status should NOT be included in BACS query'
     );
   }
 
