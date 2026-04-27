@@ -1,64 +1,41 @@
-# Gemini Code Assist Configuration
-# Documentation: https://cloud.google.com/gemini/docs/code-assist
+# Gemini Code Assist configuration
+# See: https://developers.google.com/gemini-code-assist/docs/customize-gemini-behavior-github
 
+# Files/directories Gemini should ignore during review
+ignore_patterns:
+  - "*.civix.php"
+  - "CRM/*/DAO/*.php"
+  - "xml/schema/*.entityType.php"
+  - "vendor/**"
+  - "node_modules/**"
+  - "*.min.js"
+  - "*.min.css"
+
+# Persistent memory for this repository (learns from past reviews)
+memory_config:
+  disabled: false
+
+# Code review settings
 code_review:
-  # Enable automatic PR reviews
-  enabled: true
+  # Set to true to disable Gemini on PRs
+  disable: false
 
-  # Review criteria
-  checks:
-    - security
-    - performance
-    - best_practices
-    - code_style
-    - testing
+  # Minimum severity for review comments (LOW, MEDIUM, HIGH, CRITICAL)
+  comment_severity_threshold: MEDIUM
 
-  # Severity levels
-  severity_levels:
-    - BLOCKER    # Must fix before merge
-    - WARNING    # Should fix
-    - SUGGESTION # Optional improvement
-    - QUESTION   # Needs clarification
+  # Maximum number of review comments (-1 for unlimited)
+  max_review_comments: -1
 
-  # Files to exclude from review
-  exclude_patterns:
-    - "*.civix.php"           # Generated files
-    - "vendor/**"             # Dependencies
-    - "tests/fixtures/**"     # Test fixtures
+  # What happens when a PR is opened
+  pull_request_opened:
+    # Post a help message explaining how to interact with Gemini
+    help: false
 
-  # Required checks before approval
-  required_checks:
-    - no_security_vulnerabilities
-    - tests_pass
-    - linting_passes
+    # Post a PR summary (overview of changes)
+    summary: true
 
-# Code generation settings
-code_generation:
-  # Follow project conventions
-  conventions:
-    - PSR-12 with Drupal modifications
-    - CiviCRM API4 over API3
-    - PHPStan compatible annotations
+    # Post code review comments
+    code_review: true
 
-  # Reference documentation
-  reference_docs:
-    - .ai/shared-development-guide.md
-    - .ai/civicrm.md
-    - .ai/extension.md
-    - .ai/unit-testing-guide.md
-
-# Language-specific settings
-languages:
-  php:
-    version: "7.4"
-    standards:
-      - Drupal
-      - CiviCRM
-
-# Testing requirements
-testing:
-  framework: phpunit
-  command: phpunit5
-  required_for:
-    - new_features
-    - bug_fixes
+    # Also review draft PRs
+    include_drafts: false
