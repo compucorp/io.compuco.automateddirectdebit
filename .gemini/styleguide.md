@@ -1,123 +1,133 @@
-# Gemini Code Review Style Guide
+# PR Reviewer Checklist for Gemini Code Assist
 
-This guide defines how Gemini should review code for this CiviCRM extension.
+When reviewing Pull Requests, apply every check below. Post comments on specific lines with a severity label. Never auto-approve.
 
-## Review Scope
+---
 
-When reviewing pull requests, evaluate against:
+## Severity Labels
 
-1. **Security** - SQL injection, XSS, sensitive data exposure
-2. **Performance** - N+1 queries, unnecessary database calls
-3. **Code Quality** - Style, DRY, readability
-4. **Testing** - Coverage, test quality
-5. **CiviCRM Patterns** - API4 usage, hooks, conventions
+Use these prefixes in every review comment:
 
-## Shared Documentation
+| Label | Meaning | Action |
+|-------|---------|--------|
+| **BLOCKER** | Security vulnerability, data loss risk, broken functionality | Must fix before merge |
+| **WARNING** | Affects quality, performance, or maintainability | Should fix before merge |
+| **SUGGESTION** | Optional improvement | Nice to have, can be follow-up |
+| **QUESTION** | Needs clarification from the author | Author must respond |
 
-Read and apply standards from:
+---
 
-- `.ai/shared-development-guide.md` - Git discipline, code quality
-- `.ai/ai-code-review.md` - Review checklist and process
-- `.ai/civicrm.md` - CiviCRM-specific patterns
-- `.ai/extension.md` - Extension structure
-- `.ai/unit-testing-guide.md` - Testing requirements
+## 1. Correctness
 
-## Severity Levels
+- Logic matches the ticket/spec acceptance criteria
+- Error handling covers realistic failure modes
+- Return types and null checks are correct
 
-### BLOCKER
+## 2. Security (BLOCKER if violated)
 
-Must be fixed before merge:
+- No hardcoded secrets, API keys, or credentials in code
+- Parameterized queries used (no SQL injection)
+- User input sanitized before rendering (no XSS)
+- CSRF protections in place on forms and state-changing endpoints
+- All user input validated/escaped before use
+- Authentication/authorization enforced on API endpoints
+- Webhook signatures verified (where applicable)
+- No sensitive files committed (`civicrm.settings.php`, `.env`)
+- No hardcoded configurable values (financial types, custom field names, entity IDs)
 
-- Security vulnerabilities
-- Bugs that will cause failures
-- Breaking changes without migration path
-- Missing required tests for features/bug fixes
+## 3. Performance (WARNING)
 
-### WARNING
+- No N+1 query patterns
+- No inefficient loops over large datasets
+- No expensive SQL anti-patterns:
+  - Expensive `COUNT(*)` on large tables (use `COUNT(id)` or conditional alternatives)
+  - Leading-wildcard `LIKE '%...'`
+  - Unnecessary subqueries, `GROUP BY`, or `SELECT DISTINCT`
+  - Unindexed JOINs
+- Columns in `WHERE`/`ORDER BY`/`JOIN` are indexed; CiviCRM custom fields have **Is Searchable** enabled
+- Unnecessary API calls avoided (use cached records)
+- Hooks are scoped to specific entities/forms (not firing on every page)
+- Caching used where appropriate (`Civi::cache()` or static caching)
+- Heavy operations queued via `CRM_Core_Job` (not run inline during HTTP requests)
 
-Should be addressed:
+## 4. Code Quality (WARNING)
 
-- Performance issues
-- Deviations from best practices
-- Missing edge case handling
-- Incomplete error handling
+- Functions follow single responsibility principle
+- Naming is clear, self-documenting, and follows project conventions
+- No dead code, unused imports, or commented-out blocks
+- Dependencies are injected, not hardcoded
+- Proper types in PHPDoc annotations (no `mixed` where avoidable)
+- `@phpstan-param` / `@phpstan-var` used where linter and PHPStan conflict
+- Return type declarations on service methods
+- No `assert()` in production code
+- Modern PHP features used where appropriate (typed properties, match expressions, enums)
+- Proper exception handling (custom exception classes where appropriate)
+- Functions/methods are small and focused (< ~50 lines where practical)
 
-### SUGGESTION
+## 5. Resilience & Data Handling (WARNING)
 
-Optional improvements:
+- Race conditions handled where multiple requests may modify the same data (database locks, `CRM_Core_Lock`)
+- Retry logic with backoff for external API calls
+- Rate limits respected on external services
+- Pagination, sorting, and filters persist across views
+- No-results states and fallback UIs implemented
+- No PII logged or stored beyond what is necessary
+- CiviCRM privacy fields and contact preferences respected
+- Data retention considered -- no indefinite storage of transient data
+- Logging uses structured context at appropriate levels -- no sensitive data in logs
+- No critical or high-severity warnings in error logs
 
-- Style preferences
-- Minor refactoring opportunities
-- Documentation improvements
+## 6. Accessibility (WARNING for UI changes)
 
-### QUESTION
+- ARIA labels on interactive elements
+- Keyboard navigation works (no mouse-only interactions)
+- Colour contrast meets WCAG AA minimum
+- Screen reader compatibility for dynamic content
 
-Request for clarification:
+## 7. Testing (WARNING)
 
-- Unclear intent
-- Unusual patterns that may be intentional
-- Business logic questions
+- New features and bug fixes include unit tests
+- Tests cover positive, negative, and edge cases
+- Validation failures tested -- invalid input handled gracefully
+- Permission testing included (admin + minimal-permission users)
+- Tests follow Arrange-Act-Assert pattern
+- External APIs are mocked, not called directly
+- No tests removed or weakened to make them pass
+- Error message changes reflected in test assertions
+- No `sleep()` calls in tests
+- No hardcoded IDs or dates that will break later
+- Tests run in isolation (no dependency on other tests)
 
-## Review Output Format
+## 8. CiviCRM-Specific (WARNING unless noted)
 
-```markdown
-## Summary
-Brief overall assessment.
+- APIv4 used -- not raw SQL or APIv3 without justification
+- User-facing strings wrapped in `ts()` for i18n
+- Extension metadata files updated if needed (`.info.xml`, `composer.json`)
+- **BLOCKER**: No new entries added to PHPStan baseline -- fix the code instead
+- **BLOCKER**: Auto-generated files (DAO, `.civix.php`) not manually edited
+- **BLOCKER**: Sensitive files not committed (`civicrm.settings.php`, `.env`)
+- `is_array()` guard on APIv4 `->first()` results
 
-## Security
-- [BLOCKER/WARNING] Issue description
+## 9. Static Analysis & Linting (WARNING)
 
-## Performance
-- [WARNING] Issue description
+- Code passes PHPStan level 9
+- Coding standards followed (CiviCRM/Drupal)
+- Files end with newlines
+- `@phpstan-param` / `@phpstan-var` used where linter and PHPStan conflict
 
-## Code Quality
-- [SUGGESTION] Improvement idea
+## 10. Process (WARNING)
 
-## Testing
-- [BLOCKER] Missing test for new feature
+- Commit messages follow `COMCL-###:` convention
+- No AI attribution in commits
+- PR template completed with all required sections (Overview, Before, After, Technical Details)
 
-## Questions
-- [QUESTION] Why is X implemented this way?
-```
+---
 
-## CiviCRM-Specific Checks
+## Review Style
 
-### API Usage
-- Prefer API4 over API3
-- Use `is_array()` guards on API4 results
-- Check for proper error handling
-
-### Custom Data
-- Access via API4 with `custom.*` select
-- Don't hardcode custom field IDs
-
-### Hooks
-- Implement hooks correctly
-- Document custom hooks
-
-### Extension Patterns
-- Follow PSR-0/PSR-4 conventions
-- Use proper upgrade path for schema changes
-- Test extension lifecycle methods
-
-## File-Specific Guidelines
-
-### PHP Files
-- Check for proper namespacing
-- Verify PHPStan compatibility
-- Look for SQL injection risks
-
-### Test Files
-- Verify Arrange-Act-Assert pattern
-- Check for positive/negative/edge cases
-- Ensure test isolation
-
-### Template Files
-- Check for XSS vulnerabilities
-- Verify proper escaping
-
-## Do Not Flag
-
-- Civix-generated files (`*.civix.php`)
-- Vendor dependencies
-- Test fixtures/mock data
+- Be specific -- reference file paths and line numbers
+- Explain **why** something is an issue, not just what to change
+- Think critically -- do not suggest changes that contradict architectural decisions
+- Consider implications of type changes, database constraints, and performance trade-offs
+- Distinguish severity clearly -- not everything is a blocker
+- Be constructive -- suggest fixes, not just problems
